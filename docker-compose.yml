@@ -1,0 +1,78 @@
+services:
+  # ── Application (FrankenPHP + PHP 8.4) ──────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    ports:
+      - "${FEMIDA_PORT:-8080}:80"
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: ${APP_URL:-http://localhost:8080}
+      APP_KEY: ${FEMIDA_APP_KEY:-}
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /app/storage/app/database.sqlite
+      SESSION_DRIVER: database
+    volumes:
+      - femida-data:/app/storage/app
+    restart: unless-stopped
+
+  # ── Development tools (profiles: tools) ────────────────────────────────
+  # docker compose run --rm composer install
+  # docker compose run --rm npm install
+  # docker compose run --rm artisan migrate
+  # docker compose run --rm test
+  composer:
+    image: composer:2
+    profiles: [tools]
+    working_dir: /app
+    volumes:
+      - .:/app
+
+  npm:
+    image: node:22-alpine
+    profiles: [tools]
+    entrypoint: ["npm"]
+    working_dir: /app
+    volumes:
+      - .:/app
+      # native bindings (rolldown etc.) — the musl build lives in a separate volume,
+      # so it does not clash with host glibc modules
+      - npm-modules:/app/node_modules
+
+  artisan:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      # PHP runtime only: code and vendor are mounted from the host,
+      # the node/vendor stages are not built for cli services
+      target: php
+    profiles: [tools]
+    entrypoint: ["php", "artisan"]
+    environment:
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /app/storage/app/database.sqlite
+    volumes:
+      - .:/app
+      - femida-data:/app/storage/app
+
+  test:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      # PHP runtime only: tests and vendor are mounted from the host
+      target: php
+    profiles: [tools]
+    entrypoint: ["vendor/bin/phpunit"]
+    environment:
+      APP_ENV: testing
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ":memory:"
+    volumes:
+      - .:/app
+      - femida-data:/app/storage/app
+
+volumes:
+  femida-data:
+  npm-modules:

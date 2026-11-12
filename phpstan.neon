@@ -1,0 +1,30 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 6
+    parseModelCastsMethod: true
+    pivotTypesInCollections: true
+    paths:
+        - app
+        - database
+        - routes
+        - config
+    ignoreErrors:
+        # Runtime-nullable values that Laravel/phpstan stubs model as non-null:
+        # guests hit the web middleware (SetUserLocale), the created_by FK is
+        # nullable with nullOnDelete, and the factory session is optional.
+        -
+            identifier: nullsafe.neverNull
+            path: app/Http/Middleware/SetUserLocale.php
+        -
+            identifier: nullsafe.neverNull
+            path: app/Livewire/SessionReview.php
+        -
+            identifier: nullsafe.neverNull
+            path: database/factories/RunFactory.php
+        # The framework docblock for JsonSchema::array() omits the items
+        # parameter (routed through __callStatic); the runtime accepts it.
+        -
+            identifier: arguments.count
+            path: app/Mcp/Tools/*.php

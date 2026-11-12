@@ -1,0 +1,27 @@
+<?php
+
+return [
+    'hint' => 'Users are created by the administrator or a project owner (in their own projects, developer/tester roles only). Password reset and blocking are administrator-only.',
+    'create' => 'Create user',
+    'field_name' => 'Name',
+    'field_password' => 'Password',
+    'password_min' => 'min 8 chars',
+    'field_locale' => 'Locale',
+    'field_roles' => 'Project roles',
+    'role_none' => '— no access',
+    'role_owner' => 'Owner',
+    'role_developer' => 'Developer',
+    'role_tester' => 'Tester',
+    'created' => 'User created.',
+    'new_password_for' => 'New password for :name',
+    'blocked' => 'blocked',
+    'instance_admin' => 'Admin',
+    'reset_password' => 'Reset password',
+    'block' => 'Block',
+    'unblock' => 'Unblock',
+    'column_user' => 'User',
+    'column_locale' => 'Locale',
+    'column_role' => 'Role',
+    'column_projects' => 'Projects & roles',
+    'name_taken' => 'This name is already taken — choose another',
+];

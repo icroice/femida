@@ -1,0 +1,30 @@
+vendor
+node_modules
+public/build
+storage/app
+storage/framework
+storage/logs
+bootstrap/cache
+.env
+.env.*
+!.env.example
+.git
+.DS_Store
+*.log
+.idea
+.vscode
+# repo-level files — not needed in the image
+# (docker/ is NOT ignored: the Dockerfile copies Caddyfile and entrypoint from it)
+docs
+Makefile
+docker-compose.yml
+README.md
+LICENSE
+# the local DB and the test suite must not end up in the image
+# (the test service gets tests/ via a volume mount, not from the image)
+database/*.sqlite
+database/*.sqlite-journal
+database/*.sqlite-wal
+database/*.sqlite-shm
+tests
+phpunit.xml
