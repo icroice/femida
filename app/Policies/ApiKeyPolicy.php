@@ -12,7 +12,7 @@ class ApiKeyPolicy
     // themselves (authorize('update', $project) / isMember) — wrapper
     // policies were dead code.
 
-    /** Revoking a key — developer+ of the key's project. */
+    /** Revoking a key — any member of the key's project (v2-17). */
     public function delete(User $user, ApiKey $apiKey): bool
     {
         return $user->isMember($apiKey->project);

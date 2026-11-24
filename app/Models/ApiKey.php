@@ -79,9 +79,9 @@ class ApiKey extends Model
 
     /**
      * The key is usable right now: the owner exists, is not blocked
-     * and keeps developer+ rights in the project. Removal from the project,
-     * demotion to tester, blocking or deleting the owner
-     * all stop the key without a manual revocation.
+     * and is still a project member (v2-17). Removal from the project,
+     * blocking or deleting the owner all stop the key without a manual
+     * revocation.
      */
     public function isUsable(): bool
     {

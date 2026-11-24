@@ -5,10 +5,10 @@ namespace App\Policies;
 use App\Models\User;
 
 /**
- * The "Users" section: the admin (Gate::before) and project owners.
- * An owner sees and creates users only for their own projects and only
- * with developer/tester roles; appointing owners and resetting passwords
- * is admin-only. Password reset/blocking — admin only (before).
+ * The "Users" section: the instance admin (Gate::before) and project
+ * admins. A project admin sees and creates users only for their own
+ * projects, with any of the two start roles (v2-17). Password reset and
+ * blocking are instance-admin-only (before).
  */
 class UserPolicy
 {

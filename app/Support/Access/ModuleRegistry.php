@@ -4,8 +4,8 @@ namespace App\Support\Access;
 
 /**
  * The module registry (spec §2): a static catalog of module descriptors,
- * synchronous with the code. The database stores no modules — only
- * per-project availability rows (module_states).
+ * synchronous with the code. The database stores no modules — modules are
+ * available to every project member (decision v2-18).
  */
 final class ModuleRegistry
 {

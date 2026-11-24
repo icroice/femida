@@ -19,8 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // The single place of access logic, memoized per request
-        $this->app->singleton(AccessService::class);
+        //
     }
 
     /**

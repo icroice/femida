@@ -24,18 +24,16 @@ class ProfileKeys extends FemidaComponent
 
     /**
      * Projects where the current user may issue API keys
-     * (any project member).
+     * (any project they are a member of, v2-17).
+     *
+     * @return Collection<int, Project&object{pivot: ProjectUser}>
      */
-    /** @return Collection<int, Project&object{pivot: ProjectUser}> */
     public function keyProjects(): Collection
     {
         /** @var User $user */
         $user = auth()->user();
 
-        return $user->projects()
-            ->get()
-            ->filter(fn ($project) => $user->isMember($project))
-            ->values();
+        return $user->projects()->get()->values();
     }
 
     /**

@@ -22,9 +22,4 @@ enum Permission: string
     {
         return array_map(fn (self $permission) => $permission->value, self::cases());
     }
-
-    public static function fromValueOrNull(string $value): ?self
-    {
-        return self::tryFrom($value);
-    }
 }
