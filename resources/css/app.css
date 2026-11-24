@@ -124,27 +124,9 @@
     --color-error: #e87a7a;
     --color-error-content: #2a1111;
 
-    /* Product tokens: light-theme values for now (parity with the v1-era
-       :root fallback) — the dark scale is retuned by backlog 003 */
-    --fm-ink-2: oklch(45% 0.018 262);
-    --fm-muted: oklch(55% 0.016 262);
-    --fm-subtle: oklch(68% 0.012 262);
-    --fm-line: oklch(93.2% 0.006 272);
-    --fm-line-strong: oklch(89% 0.008 272);
-    --fm-row-hover: oklch(98.4% 0.004 272);
-
-    --fm-primary-soft: oklch(96.5% 0.022 272);
-    --fm-primary-soft-2: oklch(94% 0.04 272);
-    --fm-primary-ring: oklch(48% 0.12 272 / 0.18);
-
-    --fm-shadow-xs: 0 1px 1px oklch(25% 0.02 262 / 0.04);
-    --fm-shadow-sm: 0 1px 2px oklch(25% 0.02 262 / 0.04), 0 1px 3px oklch(25% 0.02 262 / 0.04);
-    --fm-shadow-md: 0 2px 4px oklch(25% 0.02 262 / 0.04), 0 8px 24px -6px oklch(25% 0.02 262 / 0.08);
-    --fm-shadow-lg: 0 4px 8px oklch(25% 0.02 262 / 0.04), 0 16px 40px -8px oklch(25% 0.02 262 / 0.16);
-
-    /* brand gradient stops (indigo → plum) */
-    --fm-grad-a: oklch(46% 0.12 272);
-    --fm-grad-b: oklch(48% 0.13 305);
+    /* Product tokens --fm-* are NOT redefined here: they inherit from the
+       default femida theme (:root) — one source of truth until 003 retunes
+       the dark scale (then this block gains only the overrides). */
 
     --radius-selector: 0.5rem;
     --radius-field: 0.5rem;
@@ -184,14 +166,16 @@
     cursor: not-allowed;
 }
 
-/* Active nav item (header tabs): brand gradient, white text — the look is
-   set by CSS on aria-current="page", no highlight classes in the markup */
-header nav a[aria-current='page'] {
+/* Active nav item (header tabs, section strip): brand gradient, white text —
+   the look is set by CSS on aria-current="page", no highlight classes in the markup */
+header nav a[aria-current='page'],
+.app-sectionbar a[aria-current='page'] {
     background-image: linear-gradient(135deg, var(--fm-grad-a), var(--fm-grad-b)) !important;
     color: #fff !important;
     box-shadow: var(--fm-shadow-sm);
 }
-header nav a[aria-current='page'] svg {
+header nav a[aria-current='page'] svg,
+.app-sectionbar a[aria-current='page'] svg {
     color: rgba(255, 255, 255, 0.88) !important;
 }
 
