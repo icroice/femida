@@ -112,10 +112,6 @@
                                         @foreach ($assignableRoles as $roleValue)
                                             <option value="{{ $roleValue }}" @selected($currentRole === $roleValue)>{{ __('users.role_'.$roleValue) }}</option>
                                         @endforeach
-                                        @if ($currentRole !== '' && ! in_array($currentRole, $assignableRoles))
-                                            {{-- the role exists but the current user cannot assign it — shown as-is --}}
-                                            <option value="{{ $currentRole }}" selected disabled>{{ __('users.role_'.$currentRole) }}</option>
-                                        @endif
                                     </select>
                                 </div>
                             @endforeach

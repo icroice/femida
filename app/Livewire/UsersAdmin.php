@@ -36,20 +36,28 @@ class UsersAdmin extends FemidaComponent
 
     public ?string $generatedFor = null;
 
+    /** @var Collection<int, Project>|null per-request memo (Livewire keeps private props out of state) */
+    private ?Collection $manageable = null;
+
     /**
-     * Projects managed by the current user (admin — all).
+     * Projects managed by the current user (admin — all). The set is stable
+     * within a request — computed once and reused by render/actions.
      *
      * @return Collection<int, Project>
      */
     public function manageableProjects(): Collection
     {
+        if ($this->manageable !== null) {
+            return $this->manageable;
+        }
+
         $query = Project::query()->orderBy('name');
 
         if (! auth()->user()->isAdmin()) {
             $query->whereIn('id', auth()->user()->administeredProjectIds());
         }
 
-        return $query->get();
+        return $this->manageable = $query->get();
     }
 
     /**
