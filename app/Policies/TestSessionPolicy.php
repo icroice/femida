@@ -5,23 +5,29 @@ namespace App\Policies;
 use App\Models\Project;
 use App\Models\TestSession;
 use App\Models\User;
+use App\Support\Access\AccessService;
 
+/**
+ * Session rights are the qa module 'sessions' section abilities: they follow
+ * module availability and membership through AccessService (spec §5).
+ */
 class TestSessionPolicy
 {
+    public function __construct(private readonly AccessService $access) {}
+
     public function view(User $user, TestSession $session): bool
     {
-        return $user->isMember($session->project);
+        return $this->access->check($user, $session->project, 'qa.sessions.view');
     }
 
-    /** Sessions are created and driven by the agent/a member (via a project key). */
     public function create(User $user, Project $project): bool
     {
-        return $user->isMember($project);
+        return $this->access->check($user, $project, 'qa.sessions.create');
     }
 
     public function update(User $user, TestSession $session): bool
     {
-        return $user->isMember($session->project);
+        return $this->access->check($user, $session->project, 'qa.sessions.update');
     }
 
     /**
@@ -30,7 +36,7 @@ class TestSessionPolicy
      */
     public function verdict(User $user, TestSession $session): bool
     {
-        return $user->isMember($session->project);
+        return $this->access->check($user, $session->project, 'qa.sessions.update');
     }
 
     /**
@@ -40,24 +46,24 @@ class TestSessionPolicy
      */
     public function attachCase(User $user, TestSession $session): bool
     {
-        return $user->isMember($session->project);
+        return $this->access->check($user, $session->project, 'qa.sessions.update');
     }
 
     /**
      * Sending a case for re-verification (resetting results) — any
-     * member, including testers: it is the normal review cycle.
+     * member: it is the normal review cycle.
      */
     public function clearCase(User $user, TestSession $session): bool
     {
-        return $user->isMember($session->project);
+        return $this->access->check($user, $session->project, 'qa.sessions.update');
     }
 
     /**
-     * A full session reset (including runs) — any member: the session
-     * is tied to a commit, a full reset costs more than a single case.
+     * A full session reset (including runs) costs more than a single
+     * case — still the same sessions update right at the v2 start (v2-17).
      */
     public function clearSession(User $user, TestSession $session): bool
     {
-        return $user->isMember($session->project);
+        return $this->access->check($user, $session->project, 'qa.sessions.update');
     }
 }

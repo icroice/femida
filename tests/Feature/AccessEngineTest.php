@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\ModuleState;
 use App\Models\Project;
+use App\Models\TestCase as TestCaseModel;
 use App\Models\User;
 use App\Support\Access\AccessService;
 use App\Support\Access\Module;
@@ -132,6 +133,24 @@ class AccessEngineTest extends TestCase
 
         $this->assertTrue($this->access->check($this->admin, $this->project, 'project.settings'));
         $this->assertFalse($this->access->check($this->outsider, $this->project, 'project.settings'));
+    }
+
+    public function test_qa_policies_follow_module_availability(): void
+    {
+        // the v1 policies are wired through the engine: disabling the qa
+        // module closes cases and sessions for members
+        $case = TestCaseModel::factory()->create(['project_id' => $this->project->id]);
+
+        $this->assertTrue($this->developer->can('create', [TestCaseModel::class, $this->project]));
+        $this->assertTrue($this->developer->can('update', $case));
+
+        $this->disableQa();
+        $this->access->flushMemo();
+        $this->assertFalse($this->developer->can('create', [TestCaseModel::class, $this->project]));
+        $this->assertFalse($this->developer->can('update', $case));
+
+        // the instance admin passes regardless (Gate::before)
+        $this->assertTrue($this->admin->can('update', $case));
     }
 
     public function test_gate_bridge_routes_abilities_through_the_service(): void
