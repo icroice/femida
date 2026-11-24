@@ -7,6 +7,8 @@ use App\Models\Project;
 use App\Models\TestCase as TestCaseModel;
 use App\Models\TestSession;
 use App\Models\User;
+use App\Support\Access\Module;
+use App\Support\Shell\AppShell;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -79,8 +81,42 @@ class AppShellTest extends TestCase
             $html = $this->actingAs($this->admin)->get($url)->assertOk()->getContent();
 
             $this->assertStringNotContainsString('app-sidebar', $html, $url);
+            $this->assertStringNotContainsString('app-sectionbar', $html, $url);
             $this->assertSame(0, preg_match('#<nav [^>]*aria-label="Modules"#', $html), $url);
         }
+    }
+
+    public function test_section_strip_keeps_sections_reachable_below_lg(): void
+    {
+        $html = $this->actingAs($this->developer)
+            ->get(route('projects.cases.index', $this->project))
+            ->assertOk()
+            ->getContent();
+
+        // the narrow-viewport strip mirrors the rail: one strip nav holding
+        // every section link (the dark rail is display:none below lg)
+        $this->assertSame(1, preg_match('#<nav class="app-sectionbar[^"]*"#', $html));
+        $this->assertSame(1, preg_match(
+            '#app-sectionbar.*?'.preg_quote(route('projects.sessions.index', $this->project), '#').'#s',
+            $html
+        ));
+
+        // the active section is marked current in the strip as well
+        $this->assertSame(1, preg_match(
+            '#app-sectionbar.*?href="'.preg_quote(route('projects.cases.index', $this->project), '#').'"\s+aria-current="page"#s',
+            $html
+        ));
+    }
+
+    public function test_sections_without_a_registered_route_are_skipped(): void
+    {
+        // a module may declare more sections than the shell can link — an
+        // unregistered route must skip the item, not 500 the layout
+        $module = new Module(id: 'ghost', title: 'Ghost', order: 1, sections: ['cases', 'phantom']);
+
+        $links = AppShell::sectionLinksFor($module, $this->project);
+
+        $this->assertSame(['cases'], array_map(fn ($link) => $link->id, $links));
     }
 
     public function test_project_switcher_lists_projects_and_admin_extras(): void
