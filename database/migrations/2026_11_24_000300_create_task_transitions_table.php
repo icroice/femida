@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('from_column')->nullable(); // null = the creation event
             $table->string('to_column');
             $table->timestamp('created_at')->nullable(); // when; immutable — no updated_at
+            $table->index('task_id'); // history lookups: WHERE task_id on the largest table
         });
     }
 

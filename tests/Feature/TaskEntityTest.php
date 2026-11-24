@@ -95,10 +95,12 @@ class TaskEntityTest extends TestCase
 
         $task = $this->service->create($project, 'History', 'qa.intake', $author);
         $this->service->moveTo($task, 'qa.verify', $mover);
-        $this->service->moveTo($task->refresh(), 'qa.verify', $mover); // no-op, no noise
-        $moved = $this->service->moveTo($task->refresh(), 'qa.done', $author);
+        $this->service->moveTo($task, 'qa.verify', $mover); // no-op, no noise
+        $this->service->moveTo($task, 'qa.done', $author);
 
-        $this->assertSame('qa.done', $moved->refresh()->column);
+        // the caller's handle stays in sync — no refresh() workarounds
+        $this->assertSame('qa.done', $task->column);
+        $this->assertFalse($task->isDirty());
 
         $history = $task->transitions()->orderBy('id')->get();
         $this->assertCount(3, $history);
@@ -140,6 +142,45 @@ class TaskEntityTest extends TestCase
 
         $this->expectException(ValidationException::class);
         $this->service->create($project, '  ', 'qa.intake', $author);
+    }
+
+    public function test_overlong_title_is_rejected(): void
+    {
+        $project = Project::factory()->create();
+        $author = User::factory()->create();
+
+        try {
+            $this->service->create($project, str_repeat('x', 501), 'qa.intake', $author);
+            $this->fail('a 501-char title must be rejected');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('title', $e->errors());
+        }
+    }
+
+    public function test_unknown_assignee_is_rejected(): void
+    {
+        $project = Project::factory()->create();
+        $author = User::factory()->create();
+
+        try {
+            $this->service->create($project, 'Ghost assignee', 'qa.intake', $author, null, 999999);
+            $this->fail('an unknown assignee must be rejected');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('assignee_id', $e->errors());
+        }
+    }
+
+    public function test_factory_tasks_carry_the_creation_transition(): void
+    {
+        $task = Task::factory()->create(); // assignee set — they authored the creation
+
+        $history = $task->transitions()->get();
+        $this->assertCount(1, $history);
+        $this->assertSame([$task->assignee_id, null, 'qa.intake'],
+            [$history[0]->user_id, $history[0]->from_column, $history[0]->to_column]);
+
+        // the counter moved past the factory number
+        $this->assertSame($task->number + 1, (int) $task->project->refresh()->next_task_number);
     }
 
     public function test_assignee_survives_user_deletion_and_history_keeps_its_author(): void

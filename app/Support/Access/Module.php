@@ -14,7 +14,8 @@ final class Module
     /**
      * @param  list<string>  $sections  section ids of the module
      * @param  list<ModuleRole>  $roles  business roles (reserved, v2-17)
-     * @param  list<KanbanColumn>  $columns  board columns (reserved, 002)
+     * @param  list<KanbanColumn>  $columns  board columns — live since 005
+     *                                       (referenced by tasks; ids are sticky)
      * @param  list<McpTool>  $tools  MCP tools (reserved, 013)
      */
     public function __construct(

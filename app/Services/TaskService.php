@@ -32,6 +32,12 @@ class TaskService
     ): Task {
         self::contractError(ModuleRegistry::hasColumn($column), "Unknown board column '{$column}'", 'column');
         self::contractError(trim($title) !== '', 'The title is required', 'title');
+        self::contractError(mb_strlen(trim($title)) <= 500, 'The title must be at most 500 characters', 'title');
+        self::contractError(
+            $assigneeId === null || User::query()->whereKey($assigneeId)->exists(),
+            'The assignee must be an existing user',
+            'assignee_id'
+        );
 
         return DB::transaction(function () use ($project, $title, $column, $author, $description, $assigneeId): Task {
             // lock the counter row: concurrent creates serialize here
@@ -70,18 +76,19 @@ class TaskService
             $locked = Task::query()->whereKey($task->getKey())->lockForUpdate()->firstOrFail();
             $from = $locked->column;
 
-            if ($from === $column) {
-                return $locked;
+            if ($from !== $column) {
+                $locked->forceFill(['column' => $column])->save();
+                $locked->transitions()->create([
+                    'user_id' => $actor->id,
+                    'from_column' => $from,
+                    'to_column' => $column,
+                ]);
             }
 
-            $locked->forceFill(['column' => $column])->save();
-            $locked->transitions()->create([
-                'user_id' => $actor->id,
-                'from_column' => $from,
-                'to_column' => $column,
-            ]);
+            // keep the caller's handle in sync with the locked row
+            $task->setRawAttributes($locked->getAttributes(), true);
 
-            return $locked;
+            return $task;
         });
     }
 
