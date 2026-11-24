@@ -15,6 +15,9 @@ use App\Http\Controllers\SetupController;
 use App\Http\Controllers\TestCasePageController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\EnsureProjectMember;
+use App\Http\Middleware\EnsureSetupCompleted;
+use App\Http\Middleware\EnsureUserNotBlocked;
+use App\Http\Middleware\SetUserLocale;
 use App\Models\Project;
 use App\Models\TestCase;
 use App\Models\User;
@@ -43,6 +46,18 @@ Route::post('/logout', [LoginController::class, 'destroy'])
     ->name('logout');
 
 Route::get('/locale/{locale}', [LocaleController::class, 'switch'])->name('locale.switch');
+
+/*
+|--------------------------------------------------------------------------
+| Styleguide (dev environment only)
+|--------------------------------------------------------------------------
+*/
+
+Route::view('/styleguide', 'styleguide')
+    ->middleware('local.env')
+    // a static dev page: must render on a fresh clone before the setup wizard
+    ->withoutMiddleware([EnsureSetupCompleted::class, SetUserLocale::class, EnsureUserNotBlocked::class])
+    ->name('styleguide');
 
 /*
 |--------------------------------------------------------------------------

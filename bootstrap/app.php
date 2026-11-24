@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuthenticateApiKey;
+use App\Http\Middleware\EnsureLocalEnv;
 use App\Http\Middleware\EnsureProjectMember;
 use App\Http\Middleware\EnsureSetupCompleted;
 use App\Http\Middleware\EnsureUserNotBlocked;
@@ -29,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(SetSecurityHeaders::class);
         $middleware->alias([
             'api.key' => AuthenticateApiKey::class,
+            'local.env' => EnsureLocalEnv::class,
             'project.member' => EnsureProjectMember::class,
         ]);
         $middleware->redirectGuestsTo('/login');
