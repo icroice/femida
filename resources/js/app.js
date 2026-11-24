@@ -28,9 +28,11 @@ import {
     LogOut,
     Mail,
     Package,
+    BookOpen,
     Palette,
     PanelsTopLeft,
     Pencil,
+    Play,
     Plus,
     RectangleHorizontal,
     RotateCcw,
@@ -45,6 +47,7 @@ import {
     Type,
     Upload,
     User,
+    Users,
     X,
 } from 'lucide';
 
@@ -53,6 +56,7 @@ const icons = {
     ArrowRight,
     BadgeCheck,
     Bell,
+    BookOpen,
     CalendarDays,
     Check,
     ChevronDown,
@@ -76,6 +80,7 @@ const icons = {
     Palette,
     PanelsTopLeft,
     Pencil,
+    Play,
     Plus,
     RectangleHorizontal,
     RotateCcw,
@@ -90,6 +95,7 @@ const icons = {
     Type,
     Upload,
     User,
+    Users,
     X,
 };
 

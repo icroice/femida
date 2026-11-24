@@ -76,17 +76,17 @@ class HelpPagesTest extends TestCase
             ->assertDontSee(__('help.next_section'));
     }
 
-    public function test_the_header_book_icon_is_available_to_every_signed_in_user(): void
+    public function test_help_is_available_to_every_signed_in_user(): void
     {
+        // help lives in the profile dropdown (006) — reachable from every page
         $this->actingAs($this->member)
             ->get(route('home'))
             ->assertOk()
             ->assertSee('href="'.route('help.index').'"', false)
-            ->assertSee('title="'.__('app.help').'"', false);
+            ->assertSee(__('app.help'));
 
-        // and highlighted on the help pages themselves
         $this->actingAs($this->member)
             ->get('/help/overview')
-            ->assertSee(__('app.help'));
+            ->assertSee('href="'.route('help.index').'"', false);
     }
 }

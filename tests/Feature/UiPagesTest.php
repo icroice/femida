@@ -180,33 +180,35 @@ class UiPagesTest extends TestCase
     }
 
     /**
-     * Section tabs live in the layout header, outside every Livewire
-     * component: wire updates never re-render them, so the active highlight
-     * only has to be right on a full page load (route-based).
+     * The open section is marked with aria-current="page" only — the look
+     * (brand gradient) is set by CSS, no highlight classes in the markup.
+     * Navigation lives in the layout, outside every Livewire component:
+     * wire updates never re-render it, so the mark only has to be right on
+     * a full page load (URL-based).
      */
-    public function test_header_tab_highlights_the_current_section(): void
+    public function test_navigation_marks_the_current_section_with_aria_current(): void
     {
-        $project = $this->project;
-        $tabClass = function (string $html, string $section) use ($project): string {
-            $slug = $project->slug;
-            $ok = preg_match('#<a href="[^"]*/projects/'.$slug.'/'.$section.'"\s+class="([^"]*)"#', $html, $m);
-
-            return $ok === 1 ? $m[1] : '';
-        };
+        $slug = $this->project->slug;
+        // the rail item is told from the module tab by its section icon —
+        // the tab keeps aria-current on every page of the module
+        $railCurrent = static fn (string $html, string $section, string $icon): bool => (bool) preg_match(
+            '#<a href="[^"]*/projects/'.$slug.'/'.$section.'"\s+aria-current="page"[^>]*>\s*<i data-lucide="'.$icon.'"#s',
+            $html
+        );
 
         $cases = $this->actingAs($this->tester)
             ->get(route('projects.cases.index', $this->project))
             ->assertOk()
             ->getContent();
-        $this->assertStringContainsString('font-bold', $tabClass($cases, 'cases'));
-        $this->assertStringNotContainsString('font-bold', $tabClass($cases, 'sessions'));
+        $this->assertTrue($railCurrent($cases, 'cases', 'list-todo'));
+        $this->assertFalse($railCurrent($cases, 'sessions', 'play'));
 
         $sessions = $this->actingAs($this->tester)
             ->get(route('projects.sessions.index', $this->project))
             ->assertOk()
             ->getContent();
-        $this->assertStringContainsString('font-bold', $tabClass($sessions, 'sessions'));
-        $this->assertStringNotContainsString('font-bold', $tabClass($sessions, 'cases'));
+        $this->assertTrue($railCurrent($sessions, 'sessions', 'play'));
+        $this->assertFalse($railCurrent($sessions, 'cases', 'list-todo'));
     }
 
     /**
@@ -585,13 +587,12 @@ class UiPagesTest extends TestCase
             ->get(route('users.index'))
             ->assertForbidden();
 
-        // the project navigation does not disappear on the users page either,
-        // the roles in the select box are translated
+        // module navigation exists only inside a project (006): the users
+        // page shows the bare shell; the roles in the select box are translated
         $this->actingAs($this->admin)
             ->get(route('users.index'))
             ->assertOk()
-            ->assertSee('Cases')
-            ->assertSee(route('projects.cases.index', $this->project))
+            ->assertDontSee(route('projects.cases.index', $this->project))
             ->assertSee('Developer')
             ->assertSee('Admin');
 

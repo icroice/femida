@@ -20,7 +20,7 @@ use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
- * Workspace UI: two-tier header, Livewire browsers, profile theme,
+ * Workspace UI: app shell (header + module rail), Livewire browsers, profile theme,
  * tester rights, name uniqueness.
  */
 class WorkspaceUiTest extends TestCase
