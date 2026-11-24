@@ -89,7 +89,7 @@ class ApiKey extends Model
 
         return $owner !== null
             && ! $owner->isBlocked()
-            && $owner->isDeveloper($this->project);
+            && $owner->isMember($this->project);
     }
 
     public function isRevoked(): bool

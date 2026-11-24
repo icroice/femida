@@ -21,10 +21,10 @@ class ProjectPolicy
         return false;
     }
 
-    /** Project settings — the owner (the admin passes via Gate::before). */
+    /** Project settings — a project admin (the instance admin passes via Gate::before). */
     public function update(User $user, Project $project): bool
     {
-        return $user->isOwner($project);
+        return $user->isProjectAdmin($project);
     }
 
     /** Deleting a project — admin only. */

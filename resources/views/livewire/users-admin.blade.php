@@ -107,7 +107,7 @@
                                     <select
                                         {{ $user->is_admin ? 'disabled' : '' }}
                                         wire:change="setMemberRole({{ $user->id }}, {{ $project->id }}, $event.target.value)"
-                                        class="select select-bordered select-xs {{ $currentRole === 'owner' ? 'select-primary' : '' }}">
+                                        class="select select-bordered select-xs {{ $currentRole === 'admin' ? 'select-primary' : '' }}">
                                         <option value="" @selected($currentRole === '')>{{ __('users.role_none') }}</option>
                                         @foreach ($assignableRoles as $roleValue)
                                             <option value="{{ $roleValue }}" @selected($currentRole === $roleValue)>{{ __('users.role_'.$roleValue) }}</option>

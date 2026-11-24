@@ -57,7 +57,7 @@ class UiPagesTest extends TestCase
 
         $this->project = Project::factory()->create(['name' => 'Register']);
         $this->project->users()->attach($this->developer->id, ['role' => ProjectRole::Developer->value]);
-        $this->project->users()->attach($this->tester->id, ['role' => ProjectRole::Tester->value]);
+        $this->project->users()->attach($this->tester->id, ['role' => ProjectRole::Developer->value]);
     }
 
     /*
@@ -422,14 +422,13 @@ class UiPagesTest extends TestCase
     {
         $session = $this->sessionWithEvidence();
 
+        // any member works the review actions (v2-17)
         Livewire::actingAs($this->tester)
             ->test(SessionReview::class, ['project' => $this->project, 'session' => $session])
-            ->assertDontSeeHtml('setStatus(')
             ->assertSee(__('sessions.status_not_passed'))
             ->assertSeeHtml('copySummary')
-            // tester: case reset yes, session reset no
             ->assertSeeHtml('clearCase(')
-            ->assertDontSeeHtml('clearSession');
+            ->assertSeeHtml('wire:click="clearSession"');
 
         Livewire::actingAs($this->developer)
             ->test(SessionReview::class, ['project' => $this->project, 'session' => $session->refresh()])
@@ -537,7 +536,7 @@ class UiPagesTest extends TestCase
     public function test_owner_manages_project_keys(): void
     {
         $owner = User::factory()->create(['name' => 'Line item']);
-        $this->project->users()->attach($owner->id, ['role' => ProjectRole::Owner->value]);
+        $this->project->users()->attach($owner->id, ['role' => ProjectRole::Admin->value]);
         [, $token] = ApiKey::issue($this->project, $this->developer, 'dev-dk');
 
         $settings = Livewire::actingAs($owner)
@@ -594,19 +593,19 @@ class UiPagesTest extends TestCase
             ->assertSee('Cases')
             ->assertSee(route('projects.cases.index', $this->project))
             ->assertSee('Developer')
-            ->assertSee('Tester');
+            ->assertSee('Admin');
 
         Livewire::actingAs($this->admin)
             ->test(UsersAdmin::class)
             ->set('name', 'Olga Sh.')
             ->set('email', 'olga@example.team')
             ->set('password', 'strong-password')
-            ->set('roles', [$this->project->id => 'tester'])
+            ->set('roles', [$this->project->id => 'developer'])
             ->call('createUser')
             ->assertHasNoErrors();
 
         $olga = User::query()->where('email', 'olga@example.team')->firstOrFail();
-        $this->assertSame(ProjectRole::Tester, $olga->roleIn($this->project));
+        $this->assertSame(ProjectRole::Developer, $olga->roleIn($this->project));
 
         Livewire::actingAs($this->admin)
             ->test(UsersAdmin::class)
@@ -632,7 +631,7 @@ class UiPagesTest extends TestCase
     public function test_reset_password_and_block_purge_user_sessions(): void
     {
         $victim = User::factory()->create();
-        $this->project->users()->attach($victim->id, ['role' => ProjectRole::Tester->value]);
+        $this->project->users()->attach($victim->id, ['role' => ProjectRole::Developer->value]);
 
         config(['session.driver' => 'database']);
 
@@ -723,24 +722,15 @@ class UiPagesTest extends TestCase
      */
 
     /** Only a developer+ may change a case status via the form select. */
-    public function test_case_status_field_writes_only_for_developers(): void
+    public function test_case_status_field_writes_for_any_member(): void
     {
         $case = TestCaseModel::factory()->create([
             'project_id' => $this->project->id,
             'status' => 'active',
         ]);
 
-        // tester: the select is hidden, a smuggled value is ignored
+        // any member may archive a case (v2-17)
         Livewire::actingAs($this->tester)
-            ->test(CaseEditor::class, ['project' => $this->project, 'case' => $case])
-            ->set('status', 'inactive')
-            ->call('save')
-            ->assertRedirect(route('projects.cases.index', $this->project));
-
-        $this->assertSame('active', $case->refresh()->status->value);
-
-        // developer (policy delete): the status change goes through
-        Livewire::actingAs($this->developer)
             ->test(CaseEditor::class, ['project' => $this->project, 'case' => $case])
             ->set('status', 'inactive')
             ->call('save')
@@ -758,7 +748,7 @@ class UiPagesTest extends TestCase
             ->assertDontSee(route('projects.settings', $this->project));
 
         $owner = User::factory()->create();
-        $this->project->users()->attach($owner->id, ['role' => ProjectRole::Owner->value]);
+        $this->project->users()->attach($owner->id, ['role' => ProjectRole::Admin->value]);
 
         $this->actingAs($owner)
             ->get(route('projects.cases.index', $this->project))
@@ -770,7 +760,7 @@ class UiPagesTest extends TestCase
     public function test_block_button_hidden_for_project_owner(): void
     {
         $owner = User::factory()->create();
-        $this->project->users()->attach($owner->id, ['role' => ProjectRole::Owner->value]);
+        $this->project->users()->attach($owner->id, ['role' => ProjectRole::Admin->value]);
 
         // the owner reaches the page (viewAny) but without the block button
         Livewire::actingAs($owner)

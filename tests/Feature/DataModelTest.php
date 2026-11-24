@@ -29,10 +29,10 @@ class DataModelTest extends TestCase
         $tester = User::factory()->create();
 
         $project->users()->attach($dev->id, ['role' => ProjectRole::Developer->value]);
-        $project->users()->attach($tester->id, ['role' => ProjectRole::Tester->value]);
+        $project->users()->attach($tester->id, ['role' => ProjectRole::Developer->value]);
 
         $this->assertSame(ProjectRole::Developer, $dev->projects->first()->pivot->role);
-        $this->assertSame(ProjectRole::Tester, $project->users->find($tester->id)->pivot->role);
+        $this->assertSame(ProjectRole::Developer, $project->users->find($tester->id)->pivot->role);
     }
 
     public function test_user_name_is_unique_in_db(): void

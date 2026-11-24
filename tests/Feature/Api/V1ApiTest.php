@@ -82,8 +82,8 @@ class V1ApiTest extends TestCase
     }
 
     /**
-     * A key lives exactly as long as its owner keeps
-     * developer+ rights in the project and stays unblocked.
+     * A key lives exactly as long as its owner stays a project
+     * member and stays unblocked (v2-17: any member holds key rights).
      */
     public function test_api_key_follows_owner_access_changes(): void
     {
@@ -93,12 +93,8 @@ class V1ApiTest extends TestCase
         $this->project->users()->detach($owner->id);
         $this->getJson('/api/v1/me', $this->headers())->assertUnauthorized();
 
-        // demoting to tester — no key rights
-        $this->project->users()->attach($owner->id, ['role' => ProjectRole::Tester->value]);
-        $this->getJson('/api/v1/me', $this->headers())->assertUnauthorized();
-
-        // promoting back to developer — works again
-        $this->project->users()->syncWithoutDetaching([$owner->id => ['role' => ProjectRole::Developer->value]]);
+        // back as a developer — works again
+        $this->project->users()->attach($owner->id, ['role' => ProjectRole::Developer->value]);
         $this->getJson('/api/v1/me', $this->headers())->assertOk();
 
         // blocking the owner — dead; unblocking — alive again

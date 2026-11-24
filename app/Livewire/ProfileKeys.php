@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Collection;
 /**
  * "Profile → My API keys": issuing and revoking personal keys.
  * The key owner is always the current user; keys are issued in projects
- * where they are developer or above.
+ * where they are a member.
  */
 class ProfileKeys extends FemidaComponent
 {
@@ -24,7 +24,7 @@ class ProfileKeys extends FemidaComponent
 
     /**
      * Projects where the current user may issue API keys
-     * (developer role or above).
+     * (any project member).
      */
     /** @return Collection<int, Project&object{pivot: ProjectUser}> */
     public function keyProjects(): Collection
@@ -34,7 +34,7 @@ class ProfileKeys extends FemidaComponent
 
         return $user->projects()
             ->get()
-            ->filter(fn ($project) => $user->isDeveloper($project))
+            ->filter(fn ($project) => $user->isMember($project))
             ->values();
     }
 
@@ -62,7 +62,7 @@ class ProfileKeys extends FemidaComponent
 
             return;
         }
-        abort_unless(auth()->user()->isDeveloper($project), 403);
+        abort_unless(auth()->user()->isMember($project), 403);
 
         $this->validate([
             'keyName' => ['required', 'string', 'max:100'],

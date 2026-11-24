@@ -24,9 +24,9 @@ class TestCasePolicy
         return $user->isMember($testCase->project);
     }
 
-    /** "Deleting" a case = moving it to inactive — developer+ only. */
+    /** "Deleting" a case = moving it to inactive — any project member. */
     public function delete(User $user, TestCase $testCase): bool
     {
-        return $user->isDeveloper($testCase->project);
+        return $user->isMember($testCase->project);
     }
 }

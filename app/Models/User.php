@@ -27,13 +27,13 @@ class User extends Authenticatable
             ->withPivot(['role']);
     }
 
-    /** Projects where the user is an owner (for the admin's Users section pages). */
+    /** Projects where the user is a project admin (for the Users section pages). */
     /** @return BelongsToMany<Project, $this, ProjectUser, 'pivot'> */
-    public function ownedProjects(): BelongsToMany
+    public function administeredProjects(): BelongsToMany
     {
         return $this->belongsToMany(Project::class)
             ->using(ProjectUser::class)
-            ->wherePivot('role', ProjectRole::Owner->value);
+            ->wherePivot('role', ProjectRole::Admin->value);
     }
 
     public function isAdmin(): bool
@@ -68,33 +68,29 @@ class User extends Authenticatable
         return $this->isAdmin() || $this->roleIn($project) !== null;
     }
 
-    /** developer-level rights in a project (owner and admin — everywhere in theirs). */
-    public function isDeveloper(Project $project): bool
+    /**
+     * Project admin: settings, team, modules (v2-17). There may be several;
+     * the instance admin passes too.
+     */
+    public function isProjectAdmin(Project $project): bool
     {
-        return $this->isOwner($project)
-            || $this->roleIn($project) === ProjectRole::Developer;
+        return $this->isAdmin() || $this->roleIn($project) === ProjectRole::Admin;
     }
 
-    /** Project owner: settings, project team (admin — everywhere). */
-    public function isOwner(Project $project): bool
-    {
-        return $this->isAdmin() || $this->roleIn($project) === ProjectRole::Owner;
-    }
-
-    /** Can open the "Users" section: admin or owner of at least one project. */
+    /** Can open the "Users" section: admin or admin of at least one project. */
     public function managesUsers(): bool
     {
-        return $this->isAdmin() || $this->ownedProjects()->exists();
+        return $this->isAdmin() || $this->administeredProjects()->exists();
     }
 
     /**
-     * Ids of projects the user owns.
+     * Ids of projects the user administers.
      *
      * @return list<int>
      */
-    public function ownedProjectIds(): array
+    public function administeredProjectIds(): array
     {
-        return $this->ownedProjects()->pluck('projects.id')->all();
+        return $this->administeredProjects()->pluck('projects.id')->all();
     }
 
     /**

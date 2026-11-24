@@ -21,7 +21,7 @@ use App\Models\User;
  * (decision v2-17) project roles are just admin/developer: module verbs are
  * granted to every member; module business roles are a reserved extension
  * (ModuleRole) that plugs in here without changing the API. The instance
- * admin passes any check.
+ * admin and the project admin pass any check in the project.
  */
 final class AccessService
 {
@@ -30,7 +30,7 @@ final class AccessService
 
     public function check(User $user, Project $project, string $ability): bool
     {
-        if ($user->isAdmin()) {
+        if ($user->isProjectAdmin($project)) {
             return true;
         }
 

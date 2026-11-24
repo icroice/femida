@@ -53,7 +53,7 @@ class SessionFlowTest extends TestCase
         $this->tester = User::factory()->create();
         $this->project = Project::factory()->create(['name' => 'Register']);
         $this->project->users()->attach($this->developer->id, ['role' => ProjectRole::Developer->value]);
-        $this->project->users()->attach($this->tester->id, ['role' => ProjectRole::Tester->value]);
+        $this->project->users()->attach($this->tester->id, ['role' => ProjectRole::Developer->value]);
     }
 
     private function greenSession(): TestSession
@@ -308,21 +308,15 @@ class SessionFlowTest extends TestCase
         $this->assertSame([$sessionCase->case_id], $payload['pending_case_ids']);
     }
 
-    public function test_clear_session_requires_developer_and_wipes_runs(): void
+    public function test_clear_session_wipes_runs_for_any_member(): void
     {
         $session = $this->greenSession();
         $caseId = $session->cases()->first()->id;
         $paths = Screenshot::query()->pluck('path');
 
-        // a tester is not allowed the full reset
+        // any member may run the full reset (v2-17): runs, steps, files go;
+        // case attachments remain
         Livewire::actingAs($this->tester)
-            ->test(SessionReview::class, ['project' => $this->project, 'session' => $session->refresh()])
-            ->call('clearSession');
-        // authorize throws an exception Livewire does not swallow — assert nothing was wiped
-        $this->assertSame(2, $session->runs()->count());
-
-        // developer+ wipes everything: runs, steps, files; case attachments remain
-        Livewire::actingAs($this->developer)
             ->test(SessionReview::class, ['project' => $this->project, 'session' => $session->refresh()])
             ->call('clearSession')
             ->assertHasNoErrors();

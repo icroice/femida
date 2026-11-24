@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Enums\ProjectRole;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -14,9 +15,9 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 /**
- * The "Users" section: the admin sees everyone, a project owner sees the
- * members of their projects. Creating users and the role editor; password
- * reset and blocking — admin only. An owner does not appoint owners.
+ * The "Users" section: the instance admin sees everyone, a project admin
+ * sees the members of their administered projects. Creating users and the
+ * role editor; password reset and blocking — instance admin only.
  */
 class UsersAdmin extends FemidaComponent
 {
@@ -28,7 +29,7 @@ class UsersAdmin extends FemidaComponent
 
     public string $password = '';
 
-    /** @var array<int, string> project_id => owner|developer|tester|'' */
+    /** @var array<int, string> project_id => admin|developer|'' */
     public array $roles = [];
 
     public ?string $generatedPassword = null;
@@ -45,23 +46,22 @@ class UsersAdmin extends FemidaComponent
         $query = Project::query()->orderBy('name');
 
         if (! auth()->user()->isAdmin()) {
-            $query->whereIn('id', auth()->user()->ownedProjectIds());
+            $query->whereIn('id', auth()->user()->administeredProjectIds());
         }
 
         return $query->get();
     }
 
     /**
-     * Roles the current user may assign.
+     * Roles the current user may assign (v2-17): the two start roles,
+     * for both the instance admin and project admins — a project may
+     * have several admins.
      *
      * @return list<string>
      */
     public function assignableRoles(): array
     {
-        // only the admin appoints owners
-        return auth()->user()->isAdmin()
-            ? ['owner', 'developer', 'tester']
-            : ['developer', 'tester'];
+        return [ProjectRole::Admin->value, ProjectRole::Developer->value];
     }
 
     public function createUser(): void
@@ -174,7 +174,7 @@ class UsersAdmin extends FemidaComponent
         $projectIds = $this->manageableProjects()->pluck('id');
 
         $users = User::query()
-            // an owner sees only members of their projects; the admin sees everyone
+            // a project admin sees only members of their projects; the instance admin sees everyone
             ->when($projectIds->isNotEmpty() && ! auth()->user()->isAdmin(), fn ($q) => $q
                 ->whereHas('projects', fn ($pq) => $pq->whereIn('projects.id', $projectIds)))
             ->with(['projects' => fn ($q) => auth()->user()->isAdmin()

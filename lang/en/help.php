@@ -116,7 +116,7 @@ return [
             ['name' => 'Steps', 'text' => 'An ordered list of actions, each with the expected result — this is what the agent walks.'],
         ],
         'note_lead' => 'Anyone on the project writes cases.',
-        'note_text' => 'Every member can create and edit cases; moving a case to “archived” (it stops getting into new sessions) is a developer-level action.',
+        'note_text' => 'Every member can create, edit and archive cases (an archived case stops getting into new sessions).',
     ],
 
     'sessions' => [
@@ -191,7 +191,7 @@ return [
 
     'roles' => [
         'title' => 'Roles & access',
-        'lead' => 'Two levels: the instance (admin) and the project (owner, developer, tester).',
+        'lead' => 'Two levels: the instance (admin) and the project (admin, developer). The kanban board is open to every project member.',
         'rows_title' => 'Who can do what',
         'rows' => [
             [
@@ -204,30 +204,22 @@ return [
                 ],
             ],
             [
-                'title' => 'Owner',
-                'text' => 'A project developer who also manages it: project settings and the team. Adds developers and testers; appointing owners and resetting passwords is admin-only.',
+                'title' => 'Project admin',
+                'text' => 'Manages the project: settings, team and modules. There may be several; a project admin appoints other admins.',
                 'chips' => [
                     ['text' => 'project settings', 'tone' => 'neutral'],
                     ['text' => 'team', 'tone' => 'neutral'],
-                    ['text' => "a developer's rights", 'tone' => 'neutral'],
+                    ['text' => 'modules', 'tone' => 'neutral'],
                 ],
             ],
             [
                 'title' => 'Developer',
-                'text' => 'Full case library including archiving, drives sessions — creates them, resets them — and gives verdicts.',
+                'text' => 'Works the kanban board, the full case library including archiving, drives sessions and gives verdicts. Issues personal API keys for agents.',
                 'chips' => [
+                    ['text' => 'board', 'tone' => 'neutral'],
                     ['text' => 'cases', 'tone' => 'neutral'],
                     ['text' => 'sessions', 'tone' => 'neutral'],
-                    ['text' => 'verdicts', 'tone' => 'neutral'],
-                ],
-            ],
-            [
-                'title' => 'Tester',
-                'text' => 'Edits test cases, adds cases to sessions, sends them for re-verification and gives verdicts.',
-                'chips' => [
-                    ['text' => 'edit cases', 'tone' => 'neutral'],
-                    ['text' => 'attach cases', 'tone' => 'neutral'],
-                    ['text' => 'verdicts', 'tone' => 'neutral'],
+                    ['text' => 'API keys', 'tone' => 'neutral'],
                 ],
             ],
         ],

@@ -43,9 +43,9 @@ class AccessControlTest extends TestCase
         $this->projectA = Project::factory()->create(['name' => 'Register']);
         $this->projectB = Project::factory()->create(['name' => 'Internal Portal']);
 
-        $this->projectA->users()->attach($this->owner->id, ['role' => ProjectRole::Owner->value]);
+        $this->projectA->users()->attach($this->owner->id, ['role' => ProjectRole::Admin->value]);
         $this->projectA->users()->attach($this->developer->id, ['role' => ProjectRole::Developer->value]);
-        $this->projectA->users()->attach($this->tester->id, ['role' => ProjectRole::Tester->value]);
+        $this->projectA->users()->attach($this->tester->id, ['role' => ProjectRole::Developer->value]);
     }
 
     public function test_home_lists_only_own_projects(): void
@@ -80,10 +80,10 @@ class AccessControlTest extends TestCase
 
         $this->assertTrue($this->admin->can('create', [TestCaseModel::class, $this->projectA]));
         $this->assertTrue($this->developer->can('create', [TestCaseModel::class, $this->projectA]));
-        // a tester creates and edits cases but does not archive
+        // every member manages cases, including archiving (v2-17)
         $this->assertTrue($this->tester->can('create', [TestCaseModel::class, $this->projectA]));
         $this->assertTrue($this->tester->can('update', $caseA));
-        $this->assertFalse($this->tester->can('delete', $caseA));
+        $this->assertTrue($this->tester->can('delete', $caseA));
         $this->assertFalse($this->stranger->can('create', [TestCaseModel::class, $this->projectA]));
         $this->assertFalse($this->developer->can('create', [TestCaseModel::class, $this->projectB]));
     }
@@ -92,9 +92,9 @@ class AccessControlTest extends TestCase
     {
         $session = TestSession::factory()->create(['project_id' => $this->projectA->id]);
 
-        // creating/driving sessions — developer
+        // creating/driving sessions — any member (v2-17)
         $this->assertTrue($this->developer->can('create', [TestSession::class, $this->projectA]));
-        $this->assertFalse($this->tester->can('create', [TestSession::class, $this->projectA]));
+        $this->assertTrue($this->tester->can('create', [TestSession::class, $this->projectA]));
 
         // verdict — any member: it belongs to a human
         $this->assertTrue($this->tester->can('verdict', $session));
@@ -120,8 +120,7 @@ class AccessControlTest extends TestCase
         $this->assertFalse($this->developer->can('update', $this->projectA));
         $this->assertFalse($this->owner->can('update', $this->projectB));
 
-        // the owner inherits developer rights in their project
-        $this->assertTrue($this->owner->isDeveloper($this->projectA));
+        // the project admin inherits member rights in their project
         $this->assertTrue($this->owner->can('create', [TestCaseModel::class, $this->projectA]));
 
         // the "Users" section: admin, owner; a developer — no
@@ -146,25 +145,26 @@ class AccessControlTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_owner_manages_membership_but_not_owners(): void
+    public function test_admin_manages_membership_including_admins(): void
     {
-        // the owner adds a tester to their project
+        // the project admin adds a developer to their project
         Livewire::actingAs($this->owner)
             ->test(UsersAdmin::class)
-            ->call('setMemberRole', $this->stranger->id, $this->projectA->id, 'tester')
+            ->call('setMemberRole', $this->stranger->id, $this->projectA->id, 'developer')
             ->assertHasNoErrors();
-        $this->assertSame(ProjectRole::Tester, $this->stranger->fresh()->roleIn($this->projectA));
+        $this->assertSame(ProjectRole::Developer, $this->stranger->fresh()->roleIn($this->projectA));
 
-        // the owner cannot assign the owner role
+        // a project admin may appoint other admins (v2-17: several allowed)
         Livewire::actingAs($this->owner)
             ->test(UsersAdmin::class)
-            ->call('setMemberRole', $this->stranger->id, $this->projectA->id, 'owner');
-        $this->assertSame(ProjectRole::Tester, $this->stranger->fresh()->roleIn($this->projectA));
+            ->call('setMemberRole', $this->stranger->id, $this->projectA->id, 'admin')
+            ->assertHasNoErrors();
+        $this->assertSame(ProjectRole::Admin, $this->stranger->fresh()->roleIn($this->projectA));
 
-        // the owner does not touch another project
+        // the project admin does not touch another project
         Livewire::actingAs($this->owner)
             ->test(UsersAdmin::class)
-            ->call('setMemberRole', $this->stranger->id, $this->projectB->id, 'tester');
+            ->call('setMemberRole', $this->stranger->id, $this->projectB->id, 'developer');
         $this->assertNull($this->stranger->fresh()->roleIn($this->projectB));
 
         // '' removes access

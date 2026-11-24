@@ -41,7 +41,7 @@ class WorkspaceUiTest extends TestCase
         $this->tester = User::factory()->create(['name' => 'Maria T.']);
         $this->project = Project::factory()->create(['name' => 'Register']);
         $this->project->users()->attach($this->developer->id, ['role' => ProjectRole::Developer->value]);
-        $this->project->users()->attach($this->tester->id, ['role' => ProjectRole::Tester->value]);
+        $this->project->users()->attach($this->tester->id, ['role' => ProjectRole::Developer->value]);
     }
 
     /*

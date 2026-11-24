@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'hint' => 'Users are created by the administrator or a project owner (in their own projects, developer/tester roles only). Password reset and blocking are administrator-only.',
+    'hint' => 'Users are created by the instance admin or a project admin (in their own projects). Password reset and blocking are instance-admin-only.',
     'create' => 'Create user',
     'field_name' => 'Name',
     'field_password' => 'Password',
@@ -9,9 +9,8 @@ return [
     'field_locale' => 'Locale',
     'field_roles' => 'Project roles',
     'role_none' => '— no access',
-    'role_owner' => 'Owner',
+    'role_admin' => 'Admin',
     'role_developer' => 'Developer',
-    'role_tester' => 'Tester',
     'created' => 'User created.',
     'new_password_for' => 'New password for :name',
     'blocked' => 'blocked',

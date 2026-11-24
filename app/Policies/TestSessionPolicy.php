@@ -13,15 +13,15 @@ class TestSessionPolicy
         return $user->isMember($session->project);
     }
 
-    /** Sessions are created and driven by the agent/developer (via a developer-level key). */
+    /** Sessions are created and driven by the agent/a member (via a project key). */
     public function create(User $user, Project $project): bool
     {
-        return $user->isDeveloper($project);
+        return $user->isMember($project);
     }
 
     public function update(User $user, TestSession $session): bool
     {
-        return $user->isDeveloper($session->project);
+        return $user->isMember($session->project);
     }
 
     /**
@@ -53,11 +53,11 @@ class TestSessionPolicy
     }
 
     /**
-     * A full session reset (including runs) — developer+: the session
+     * A full session reset (including runs) — any member: the session
      * is tied to a commit, a full reset costs more than a single case.
      */
     public function clearSession(User $user, TestSession $session): bool
     {
-        return $user->isDeveloper($session->project);
+        return $user->isMember($session->project);
     }
 }

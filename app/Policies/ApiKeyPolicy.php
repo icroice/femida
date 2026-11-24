@@ -9,12 +9,12 @@ class ApiKeyPolicy
 {
     // viewAny/create are not implemented: key lists and issuing live in the
     // Livewire components (ProjectKeys/ProfileKeys), which check rights
-    // themselves (authorize('update', $project) / isDeveloper) — wrapper
+    // themselves (authorize('update', $project) / isMember) — wrapper
     // policies were dead code.
 
     /** Revoking a key — developer+ of the key's project. */
     public function delete(User $user, ApiKey $apiKey): bool
     {
-        return $user->isDeveloper($apiKey->project);
+        return $user->isMember($apiKey->project);
     }
 }
