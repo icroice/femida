@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 /**
- * Project membership: role = developer | tester.
+ * Project membership: role = admin | developer (v2-17).
  */
 class ProjectUser extends Pivot
 {

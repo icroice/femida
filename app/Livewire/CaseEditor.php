@@ -115,7 +115,7 @@ class CaseEditor extends FemidaComponent
         ];
 
         // Status = deliberate archiving, written only with the
-        // delete right (developer+). A member cannot deactivate a case via the form select.
+        // qa.cases.delete right — held by any project member (v2-17).
         // A new case from the UI is always active.
         if ($this->case === null) {
             $data['status'] = CaseStatus::Active;
