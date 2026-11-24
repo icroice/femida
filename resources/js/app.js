@@ -1,9 +1,107 @@
-import * as lucide from 'lucide';
+// Named imports only: a namespace import (import * as lucide) would pull
+// the whole ~1500-icon library into the bundle of every page. When a view
+// needs a new icon, add it here — a missing one logs a console warning
+// (see refreshIcons below).
+import {
+    createIcons,
+    ArrowDown,
+    ArrowRight,
+    BadgeCheck,
+    Bell,
+    CalendarDays,
+    Check,
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    ChevronsUpDown,
+    CircleCheck,
+    Code,
+    Ellipsis,
+    Eye,
+    FlaskConical,
+    GitPullRequest,
+    Layers,
+    LayoutDashboard,
+    LayoutTemplate,
+    ListTodo,
+    Lock,
+    LogOut,
+    Mail,
+    Package,
+    Palette,
+    PanelsTopLeft,
+    Pencil,
+    Plus,
+    RectangleHorizontal,
+    RotateCcw,
+    Scale,
+    Search,
+    Settings,
+    Square,
+    Table,
+    Tag,
+    TextCursorInput,
+    Trash2,
+    Type,
+    Upload,
+    User,
+    X,
+} from 'lucide';
 
-const { createIcons, ...iconSet } = lucide;
+const icons = {
+    ArrowDown,
+    ArrowRight,
+    BadgeCheck,
+    Bell,
+    CalendarDays,
+    Check,
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    ChevronsUpDown,
+    CircleCheck,
+    Code,
+    Ellipsis,
+    Eye,
+    FlaskConical,
+    GitPullRequest,
+    Layers,
+    LayoutDashboard,
+    LayoutTemplate,
+    ListTodo,
+    Lock,
+    LogOut,
+    Mail,
+    Package,
+    Palette,
+    PanelsTopLeft,
+    Pencil,
+    Plus,
+    RectangleHorizontal,
+    RotateCcw,
+    Scale,
+    Search,
+    Settings,
+    Square,
+    Table,
+    Tag,
+    TextCursorInput,
+    Trash2,
+    Type,
+    Upload,
+    User,
+    X,
+};
 
 // Icons: <i data-lucide="..."> elements are replaced with inline svg.
-const refreshIcons = () => createIcons({ nameAttr: 'data-lucide', icons: iconSet });
+const refreshIcons = () => {
+    createIcons({ nameAttr: 'data-lucide', icons });
+
+    // an icon missing from the imports above would silently stay <i>
+    document.querySelectorAll('i[data-lucide]').forEach((el) => {
+        console.warn(`[icons] "${el.getAttribute('data-lucide')}" is not imported in app.js`);
+    });
+};
 
 document.addEventListener('DOMContentLoaded', refreshIcons);
 

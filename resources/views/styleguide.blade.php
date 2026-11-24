@@ -150,6 +150,7 @@
                     <i data-lucide="trash-2" class="size-4"></i>Удалить
                 </button>
                 <button class="btn btn-sm h-9 border-(--fm-line) bg-base-100 font-medium shadow-(--fm-shadow-xs)" disabled>Недоступно</button>
+                <button class="btn btn-primary btn-sm h-9" disabled>Сохранить</button>
             </div>
         </section>
 

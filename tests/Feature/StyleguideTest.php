@@ -15,9 +15,6 @@ class StyleguideTest extends TestCase
             ->assertSee('--fm-ink-2');
     }
 
-    public function test_styleguide_is_a_standalone_guest_page(): void
-    {
-        // no auth redirect: the page is dev-only, not user-facing
-        $this->get('/styleguide')->assertOk();
-    }
+    // the guest request above also proves the page is standalone: no auth
+    // redirect, dev-only middleware (local.env) — nothing user-facing
 }
