@@ -689,32 +689,53 @@ class UiPagesTest extends TestCase
             ->post(route('projects.store'), [
                 'name' => 'Internal Portal',
                 'slug' => 'internal-portal',
+                'key' => 'INP',
                 'description' => 'Tickets',
             ])
             ->assertRedirect();
 
         $project = Project::query()->where('slug', 'internal-portal')->firstOrFail();
         $this->assertSame('Internal Portal', $project->name);
+        $this->assertSame('INP', $project->key);
     }
 
     /** The slug is typed explicitly: latin only, no auto-transliteration. */
     public function test_project_slug_is_validated(): void
     {
-        $existing = Project::factory()->create(['slug' => 'taken-slug']);
+        $existing = Project::factory()->create(['slug' => 'taken-slug', 'key' => 'TKN']);
 
         // "\u{418}\u{43c}..." spells a Cyrillic slug — non-latin input must be rejected
         foreach (['', "\u{418}\u{43c}\u{435}\u{435}\u{442}\u{441}\u{44f} \u{421}\u{43b}\u{430}\u{433}", 'UPPER', 'two words', '-leading', 'trailing-', 'a--b'] as $slug) {
             $this->actingAs($this->admin)
-                ->post(route('projects.store'), ['name' => 'X', 'slug' => $slug])
+                ->post(route('projects.store'), ['name' => 'X', 'slug' => $slug, 'key' => 'XOK'])
                 ->assertSessionHasErrors(['slug']);
         }
 
         // a slug already claimed by another project is rejected
         $this->actingAs($this->admin)
-            ->post(route('projects.store'), ['name' => 'X', 'slug' => 'taken-slug'])
+            ->post(route('projects.store'), ['name' => 'X', 'slug' => 'taken-slug', 'key' => 'XOK'])
             ->assertSessionHasErrors(['slug']);
 
         $this->assertSame(1, Project::query()->where('slug', 'taken-slug')->count());
+    }
+
+    /** The key prefixes task numbers (005): 2–10 capitals, unique, immutable. */
+    public function test_project_key_is_validated(): void
+    {
+        Project::factory()->create(['key' => 'TAKEN']);
+
+        foreach (['', 'a', 'lower', 'MiXeD', 'TOOLONGKEYVALUE', 'WITH SPACE', 'D1G1T'] as $key) {
+            $this->actingAs($this->admin)
+                ->post(route('projects.store'), ['name' => 'X', 'slug' => 'x-'.uniqid(), 'key' => $key])
+                ->assertSessionHasErrors(['key']);
+        }
+
+        // a key already claimed by another project is rejected
+        $this->actingAs($this->admin)
+            ->post(route('projects.store'), ['name' => 'X', 'slug' => 'x-'.uniqid(), 'key' => 'TAKEN'])
+            ->assertSessionHasErrors(['key']);
+
+        $this->assertSame(1, Project::query()->where('key', 'TAKEN')->count());
     }
 
     /*

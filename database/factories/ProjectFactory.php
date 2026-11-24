@@ -18,6 +18,7 @@ class ProjectFactory extends Factory
         return [
             'name' => $name,
             'slug' => Str::slug($name).'-'.fake()->lexify('???'),
+            'key' => strtoupper(fake()->unique()->lexify('????')),
             'description' => fake()->sentence(6),
         ];
     }

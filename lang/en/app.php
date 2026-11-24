@@ -33,9 +33,12 @@ return [
     'datetime_short' => 'd.m H:i',
     'slug_taken' => 'This slug is already taken by another project',
     'slug_hint' => 'Lowercase letters, digits and dashes — the project URL path, e.g. my-project',
+    'key_taken' => 'This key is already taken by another project',
+    'key_hint' => '2–10 capital letters — prefixes task numbers, e.g. HB-42; cannot be changed later',
     'attributes' => [
         'name' => 'Name',
         'slug' => 'Project slug',
+        'key' => 'Project key',
         'description' => 'Description',
     ],
 ];

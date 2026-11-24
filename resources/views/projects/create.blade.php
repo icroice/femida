@@ -33,6 +33,13 @@
             </label>
 
             <label class="flex flex-col mt-4">
+                <div class="label py-1"><span class="text-xs font-bold text-base-content/60">{{ __('app.attributes.key') }}</span></div>
+                <input name="key" value="{{ old('key') }}" required placeholder="HB" pattern="[A-Z]{2,10}" maxlength="10" class="input input-bordered w-full font-mono @error('key') input-error @enderror">
+                @error('key') <div class="text-xs text-error mt-1">{{ $message }}</div> @enderror
+                <div class="text-xs text-base-content/50 mt-1">{{ __('app.key_hint') }}</div>
+            </label>
+
+            <label class="flex flex-col mt-4">
                 <div class="label py-1"><span class="text-xs font-bold text-base-content/60">{{ __('app.attributes.description') }}</span></div>
                 <textarea name="description" rows="2" class="textarea textarea-bordered w-full">{{ old('description') }}</textarea>
             </label>
