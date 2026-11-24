@@ -20,7 +20,7 @@
 @else
     <div class="grid grid-cols-3 gap-5">
         @foreach ($projects as $project)
-            <a href="{{ route('projects.cases.index', $project) }}"
+            <a href="{{ $shell->landingUrl($project) }}"
                class="card bg-base-100 border border-base-200 rounded-xl p-5 flex flex-col gap-3 hover:shadow-md transition-shadow">
                 <div>
                     <div class="font-extrabold text-[15px]">{{ $project->name }}</div>

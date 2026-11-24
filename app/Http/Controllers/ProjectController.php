@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Support\Shell\AppShell;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ class ProjectController extends Controller
         return view('projects.create');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, AppShell $shell): RedirectResponse
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:100'],
@@ -51,7 +52,7 @@ class ProjectController extends Controller
         }
 
         return redirect()
-            ->route('projects.cases.index', $project)
+            ->to($shell->landingUrl($project) ?? route('home'))
             ->with('status', __('app.project_created', ['name' => $project->name]));
     }
 }

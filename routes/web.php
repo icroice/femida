@@ -21,6 +21,7 @@ use App\Http\Middleware\SetUserLocale;
 use App\Models\Project;
 use App\Models\TestCase;
 use App\Models\User;
+use App\Support\Shell\AppShell;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -93,8 +94,9 @@ Route::middleware('auth')->group(function () {
     Route::prefix('projects/{project:slug}')
         ->middleware(EnsureProjectMember::class)
         ->group(function () {
-            Route::get('/', fn (Project $project) => redirect()->route('projects.cases.index', $project))
-                ->name('projects.show');
+            Route::get('/', fn (Project $project) => redirect()->to(
+                app(AppShell::class)->landingUrl($project) ?? route('home')
+            ))->name('projects.show');
 
             Route::get('/cases', [TestCasePageController::class, 'index'])
                 ->name('projects.cases.index');

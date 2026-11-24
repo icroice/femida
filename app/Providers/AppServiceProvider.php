@@ -40,8 +40,9 @@ class AppServiceProvider extends ServiceProvider
         });
 
         // The app shell model for the layout (006): assembled in one
-        // presenter class, Blade stays display-only
-        View::composer('layouts.app', fn (\Illuminate\View\View $view) => $view->with(
+        // presenter class, Blade stays display-only. The home picker
+        // shares it — the landing link policy lives in one place.
+        View::composer(['layouts.app', 'home'], fn (\Illuminate\View\View $view) => $view->with(
             'shell', $this->app->make(AppShell::class)
         ));
 

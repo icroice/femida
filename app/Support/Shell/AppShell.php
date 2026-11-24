@@ -59,6 +59,9 @@ final class AppShell
     /** @var Collection<int, Project>|null */
     private ?Collection $switcherProjects = null;
 
+    /** @var array<int, string> landing url per project id — constant per request */
+    private array $landingCache = [];
+
     public function __construct(
         private readonly Request $request,
         private readonly AccessService $access,
@@ -112,10 +115,14 @@ final class AppShell
         return self::MODULE_ICONS[$moduleId] ?? 'layers';
     }
 
-    /** The module tab target: its first linkable section page. */
+    /**
+     * The module tab target: its first linkable section page. Resolved
+     * without counters — every tab asks on every render, counts belong
+     * to the active module's rail only.
+     */
     public function moduleUrl(Module $module): ?string
     {
-        foreach ($this->sectionLinks($module) as $link) {
+        foreach (self::sectionLinksFor($module, $this->project, withCounts: false) as $link) {
             return $link->url;
         }
 
@@ -133,11 +140,17 @@ final class AppShell
     }
 
     /**
-     * The switcher target for any project: the first linkable section of
-     * the first registry module (no counters — the switcher may hold a
-     * long project list).
+     * The landing page of a project — the single navigation policy for the
+     * home picker, the switcher and the post-create redirect: the first
+     * linkable section of the first registry module (no counters — the
+     * caller may hold a long project list). Memoized per project.
      */
     public function landingUrl(Project $project): ?string
+    {
+        return $this->landingCache[$project->getKey()] ??= $this->resolveLanding($project);
+    }
+
+    private function resolveLanding(Project $project): ?string
     {
         foreach (ModuleRegistry::all() as $module) {
             $link = self::sectionLinksFor($module, $project, withCounts: false)[0] ?? null;
@@ -197,7 +210,10 @@ final class AppShell
     /**
      * Registry modules the user may view (spec §5 — membership ∧ right;
      * today every member holds every verb, v2-18) that have a linkable
-     * section — a module without a landing page shows no tab.
+     * section — a module without a landing page shows no tab. The view
+     * right is checked for the section the tab actually opens: sections[0]
+     * need not be the linkable one once per-section rights differentiate
+     * (the ModuleRole extension, v2-14).
      *
      * @return list<Module>
      */
@@ -210,15 +226,13 @@ final class AppShell
         $modules = [];
 
         foreach (ModuleRegistry::all() as $module) {
-            if ($module->sections === []) {
+            $links = self::sectionLinksFor($module, $this->project, withCounts: false);
+
+            if ($links === []) {
                 continue;
             }
 
-            if (! $this->access->check($this->user, $this->project, $module->ability($module->sections[0], Permission::View))) {
-                continue;
-            }
-
-            if ($this->sectionLinks($module) === []) {
+            if (! $this->access->check($this->user, $this->project, $module->ability($links[0]->id, Permission::View))) {
                 continue;
             }
 
