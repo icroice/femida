@@ -44,6 +44,28 @@ final class ModuleRegistry
     }
 
     /**
+     * Does a board column ref exist? The ref format is '<module>.<column>'
+     * (005): tasks reference columns declared by modules in code.
+     */
+    public static function hasColumn(string $ref): bool
+    {
+        [$moduleId, $columnId] = array_pad(explode('.', $ref, 2), 2, null);
+        $module = self::load()[$moduleId] ?? null;
+
+        if ($module === null) {
+            return false;
+        }
+
+        foreach ($module->columns as $column) {
+            if ($column->id === $columnId) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @internal resets the static cache (after registry changes in tests)
      */
     public static function flush(): void
@@ -62,13 +84,19 @@ final class ModuleRegistry
 
         $list = [
             // The qa module — the v1 functionality (spec §4, decision v2-7).
-            // Roles/columns/tools declarations are reserved extension points
-            // (v2-17): they arrive with 002/011/013.
+            // Roles/tools declarations are reserved extension points
+            // (v2-17): they arrive with 011/013. The draft board columns
+            // (intake → verify → done) came with 005; 002 retunes them.
             new Module(
                 id: 'qa',
                 title: 'QA',
                 order: 500,
                 sections: ['cases', 'sessions'],
+                columns: [
+                    new KanbanColumn(id: 'intake', title: 'Intake'),
+                    new KanbanColumn(id: 'verify', title: 'Verify'),
+                    new KanbanColumn(id: 'done', title: 'Done'),
+                ],
             ),
         ];
 

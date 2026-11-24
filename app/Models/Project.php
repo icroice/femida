@@ -13,7 +13,14 @@ class Project extends Model
     /** @use HasFactory<ProjectFactory> */
     use HasFactory;
 
-    protected $fillable = ['name', 'slug', 'description'];
+    protected $fillable = ['name', 'slug', 'key', 'description'];
+
+    protected function casts(): array
+    {
+        return [
+            'next_task_number' => 'integer',
+        ];
+    }
 
     /** @return BelongsToMany<User, $this, ProjectUser, 'pivot'> */
     public function users(): BelongsToMany
@@ -39,5 +46,11 @@ class Project extends Model
     public function testSessions(): HasMany
     {
         return $this->hasMany(TestSession::class);
+    }
+
+    /** @return HasMany<Task, $this> */
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
     }
 }
