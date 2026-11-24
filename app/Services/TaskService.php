@@ -15,7 +15,8 @@ use Illuminate\Validation\ValidationException;
  * - the number comes from the project counter under a row lock: concurrent
  *   creations serialize, a rollback returns the number to the pool (no gaps);
  * - every create/move writes an immutable transition (who/when/from/to);
- * - a column must exist in ModuleRegistry ('<module>.<column>').
+ * - a column must exist in ModuleRegistry ('<module>.<column>');
+ * - the assignee must be a member of the task's project (TZ §4).
  */
 class TaskService
 {
@@ -34,8 +35,8 @@ class TaskService
         self::contractError(trim($title) !== '', 'The title is required', 'title');
         self::contractError(mb_strlen(trim($title)) <= 500, 'The title must be at most 500 characters', 'title');
         self::contractError(
-            $assigneeId === null || User::query()->whereKey($assigneeId)->exists(),
-            'The assignee must be an existing user',
+            $assigneeId === null || $project->users()->whereKey($assigneeId)->exists(),
+            'The assignee must be a member of the project',
             'assignee_id'
         );
 

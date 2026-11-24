@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ProjectRole;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
@@ -170,6 +171,25 @@ class TaskEntityTest extends TestCase
         }
     }
 
+    public function test_an_assignee_outside_the_project_is_rejected(): void
+    {
+        $project = Project::factory()->create();
+        $author = User::factory()->create();
+        $outsider = User::factory()->create(); // exists, but not a member
+
+        try {
+            $this->service->create($project, 'Outsider assignee', 'qa.intake', $author, null, $outsider->id);
+            $this->fail('a non-member assignee must be rejected (TZ §4)');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('assignee_id', $e->errors());
+        }
+
+        // a member passes
+        $project->users()->attach($outsider->id, ['role' => ProjectRole::Developer->value]);
+        $task = $this->service->create($project, 'Now a member', 'qa.intake', $author, null, $outsider->id);
+        $this->assertSame($outsider->id, $task->assignee_id);
+    }
+
     public function test_factory_tasks_carry_the_creation_transition(): void
     {
         $task = Task::factory()->create(); // assignee set — they authored the creation
@@ -187,6 +207,7 @@ class TaskEntityTest extends TestCase
     {
         $project = Project::factory()->create();
         $assignee = User::factory()->create();
+        $project->users()->attach($assignee->id, ['role' => ProjectRole::Developer->value]);
         $author = User::factory()->create();
         $task = $this->service->create($project, 'Assigned', 'qa.intake', $author, null, $assignee->id);
 
