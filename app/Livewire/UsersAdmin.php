@@ -41,7 +41,9 @@ class UsersAdmin extends FemidaComponent
 
     /**
      * Projects managed by the current user (admin — all). The set is stable
-     * within a request — computed once and reused by render/actions.
+     * within a request — computed once and reused by render/actions —
+     * except when the actor changes their own membership: the memo is
+     * dropped then, so the following render shows the real access.
      *
      * @return Collection<int, Project>
      */
@@ -120,6 +122,7 @@ class UsersAdmin extends FemidaComponent
 
         if ($role === '') {
             $user->projects()->detach($projectId);
+            $this->refreshManageableIfSelf($user);
 
             return;
         }
@@ -129,6 +132,15 @@ class UsersAdmin extends FemidaComponent
         }
 
         $user->projects()->syncWithoutDetaching([$projectId => ['role' => $role]]);
+        $this->refreshManageableIfSelf($user);
+    }
+
+    /** Losing/gaining project-admin rights reshapes the actor's own manageable set. */
+    private function refreshManageableIfSelf(User $user): void
+    {
+        if ($user->is(auth()->user())) {
+            $this->manageable = null;
+        }
     }
 
     public function resetPassword(int $userId): void
