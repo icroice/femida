@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Observers\ProjectObserver;
 use Database\Factories\ProjectFactory;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+#[ObservedBy(ProjectObserver::class)]
 class Project extends Model
 {
     /** @use HasFactory<ProjectFactory> */
@@ -27,6 +30,12 @@ class Project extends Model
     public function apiKeys(): HasMany
     {
         return $this->hasMany(ApiKey::class);
+    }
+
+    /** @return HasMany<ModuleState, $this> */
+    public function moduleStates(): HasMany
+    {
+        return $this->hasMany(ModuleState::class);
     }
 
     /** @return HasMany<TestCase, $this> */
