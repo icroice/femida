@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Support\Access\AccessService;
 use App\Support\Access\Module;
 use App\Support\Access\ModuleRegistry;
+use App\Support\Access\Permission;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -78,6 +79,24 @@ class AccessEngineTest extends TestCase
         $this->assertFalse($this->access->check($this->developer, $this->project, 'backlog.tasks.view'));
         $this->assertFalse($this->access->check($this->developer, $this->project, 'qa'));
         $this->assertFalse($this->access->check($this->developer, $this->project, 'nope'));
+
+        // fail-closed (022): a known module with an undeclared section
+        // or an unknown verb denies — a typo must not become a grant
+        $this->assertFalse($this->access->check($this->developer, $this->project, 'qa.runs.view'));
+        $this->assertFalse($this->access->check($this->developer, $this->project, 'qa.cases.craete'));
+    }
+
+    public function test_registry_ability_helper_is_fail_loud(): void
+    {
+        $this->assertSame(
+            'qa.sessions.update',
+            ModuleRegistry::ability('qa', 'sessions', Permission::Update)
+        );
+
+        // a module or section lost to a registry change crashes at the
+        // check site instead of silently granting
+        $this->expectException(\LogicException::class);
+        ModuleRegistry::ability('qa', 'runs', Permission::View);
     }
 
     public function test_project_settings_stay_admin_only(): void

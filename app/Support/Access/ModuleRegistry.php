@@ -35,8 +35,9 @@ final class ModuleRegistry
     }
 
     /**
-     * A module title for display; an id dropped from the registry
-     * (stale availability rows in the database) shows as-is — no 500.
+     * A module title for display; an id dropped from the registry shows
+     * as-is — no 500 (v2-18: the registry is code-only, nothing persists
+     * module ids anymore, but stale refs must not crash rendering).
      */
     public static function title(string $id): string
     {
@@ -63,6 +64,23 @@ final class ModuleRegistry
         }
 
         return false;
+    }
+
+    /**
+     * The ability string '<module>.<section>.<verb>' for a check site
+     * (fail-loud): a module id or section lost to a registry change must
+     * crash here, at the call site, not silently widen or narrow access.
+     */
+    public static function ability(string $moduleId, string $section, Permission $verb): string
+    {
+        $module = self::load()[$moduleId]
+            ?? throw new \LogicException("Unknown module '{$moduleId}' in the registry");
+
+        if (! $module->hasSection($section)) {
+            throw new \LogicException("Module '{$moduleId}' declares no section '{$section}'");
+        }
+
+        return $module->ability($section, $verb);
     }
 
     /**

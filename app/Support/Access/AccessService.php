@@ -15,7 +15,8 @@ use App\Models\User;
  *            (project admin), 'board.<verb>' (member);
  *  - module: '<module>.<section>.<verb>' — held by any project member
  *            (decision v2-18: modules come available to everyone, no
- *            enablement gating). Unknown modules grant nothing.
+ *            enablement gating). Unknown modules, undeclared sections
+ *            and unknown verbs grant nothing (fail-closed).
  *
  * The instance admin and the project admin pass any check in the project.
  * At the v2 start (decision v2-17) every member holds all module verbs;
@@ -52,15 +53,19 @@ final class AccessService
             return true;
         }
 
-        // Module ability '<module>.<section>.<verb>': the module must be
-        // known to the registry; anything that is not a full triple or
-        // names an unknown module grants nothing.
+        // Module ability '<module>.<section>.<verb>': the full triple must
+        // name a registry module, a section it declares and a known verb —
+        // a typo or a stale section denies, never grants (fail-closed).
         if (substr_count($ability, '.') !== 2) {
             return false;
         }
 
-        [$moduleId] = explode('.', $ability, 2);
+        [$moduleId, $sectionId, $verb] = explode('.', $ability);
 
-        return ModuleRegistry::has($moduleId);
+        $module = ModuleRegistry::find($moduleId);
+
+        return $module !== null
+            && $module->hasSection($sectionId)
+            && Permission::tryFrom($verb) !== null;
     }
 }
